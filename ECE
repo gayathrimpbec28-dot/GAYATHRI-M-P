@@ -1,1 +1,16 @@
+Rupal has a huge collection of country stamps. She decided to count the total number of distinct country stamps in her collection. She asked for your help. You pick the stamps one by one from a stack of  country stamps.
+
+# Read the total number of stamps
+n = int(input())
+
+# Initialize an empty set to store distinct countries
+stamps = set()
+
+# Loop through each stamp entry
+for _ in range(n):
+    country = input()
+    stamps.add(country)
+
+# The length of the set is the number of distinct countries
+print(len(stamps))
 

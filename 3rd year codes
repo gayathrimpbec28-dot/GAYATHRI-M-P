@@ -1,0 +1,248 @@
+#include <stdlib.h>
+
+#define HASH_SIZE 20033 // A prime number larger than the maximum array size constraint
+
+typedef struct HashNode {
+    int key;
+    int value;
+    struct HashNode* next;
+} HashNode;
+
+// Helper function to insert into the hash table
+void insert(HashNode** hashTable, int key, int value) {
+    int hashIndex = abs(key) % HASH_SIZE;
+    HashNode* newNode = (HashNode*)malloc(sizeof(HashNode));
+    newNode->key = key;
+    newNode->value = value;
+    newNode->next = hashTable[hashIndex];
+    hashTable[hashIndex] = newNode;
+}
+
+// Helper function to search the hash table
+HashNode* search(HashNode** hashTable, int key) {
+    int hashIndex = abs(key) % HASH_SIZE;
+    HashNode* curr = hashTable[hashIndex];
+    while (curr != NULL) {
+        if (curr->key == key) {
+            return curr;
+        }
+        curr = curr->next;
+    }
+    return NULL;
+}
+
+int* twoSum(int* nums, int numsSize, int target, int* returnSize) {
+    // 1. Allocate memory for the hash table and clear it
+    HashNode** hashTable = (HashNode**)calloc(HASH_SIZE, sizeof(HashNode*));
+    
+    // 2. Allocate the result array
+    int* result = (int*)malloc(2 * sizeof(int));
+    *returnSize = 2;
+
+    // 3. Traverse the array to find the target pair
+    for (int i = 0; i < numsSize; i++) {
+        int complement = target - nums[i];
+        HashNode* found = search(hashTable, complement);
+        
+        if (found != NULL) {
+            result[0] = found->value;
+            result[1] = i;
+            
+            // Free allocated hash table memory before returning
+            for (int j = 0; j < HASH_SIZE; j++) {
+                HashNode* curr = hashTable[j];
+                while (curr != NULL) {
+                    HashNode* temp = curr;
+                    curr = curr->next;
+                    free(temp);
+                }
+            }
+            free(hashTable);
+            return result;
+        }
+        
+        insert(hashTable, nums[i], i);
+    }
+
+    // Free hash table if no solution is found (though the problem guarantees one)
+    free(hashTable);
+    *returnSize = 0;
+    return NULL;
+}
+_______________________________________________________________________________________________________________________________________________________
+
+#include <stdlib.h>
+
+struct ListNode* addTwoNumbers(struct ListNode* l1, struct ListNode* l2) {
+    // 1. Create a dummy head node to simplify list construction
+    struct ListNode dummy;
+    dummy.val = 0;
+    dummy.next = NULL;
+    struct ListNode* curr = &dummy;
+    
+    int carry = 0;
+
+    // 2. Loop through both lists until everything is processed, including any final carry
+    while (l1 != NULL || l2 != NULL || carry != 0) {
+        int sum = carry;
+
+        if (l1 != NULL) {
+            sum += l1->val;
+            l1 = l1->next;
+        }
+
+        if (l2 != NULL) {
+            sum += l2->val;
+            l2 = l2->next;
+        }
+
+        // Calculate the new carry and the single-digit value for the new node
+        carry = sum / 10;
+        
+        // Allocate memory for the new node
+        struct ListNode* newNode = (struct ListNode*)malloc(sizeof(struct ListNode));
+        newNode->val = sum % 10;
+        newNode->next = NULL;
+
+        // Attach the new node to the result list
+        curr->next = newNode;
+        curr = curr->next;
+    }
+
+    // Return the actual head, skipping the dummy placeholder node
+    return dummy.next;
+}
+_________________________________________________________________________________________________________________________________________________________
+
+#include <limits.h>
+
+// Helper macros for min/max operations
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
+double findMedianSortedArrays(int* nums1, int nums1Size, int* nums2, int nums2Size) {
+    // Ensure nums1 is the smaller array to minimize binary search range
+    if (nums1Size > nums2Size) {
+        return findMedianSortedArrays(nums2, nums2Size, nums1, nums1Size);
+    }
+    
+    int m = nums1Size;
+    int n = nums2Size;
+    int low = 0, high = m;
+    
+    while (low <= high) {
+        int partitionX = low + (high - low) / 2;
+        int partitionY = (m + n + 1) / 2 - partitionX;
+        
+        // Handle edges using INT_MIN and INT_MAX from limits.h
+        int maxLeftX = (partitionX == 0) ? INT_MIN : nums1[partitionX - 1];
+        int minRightX = (partitionX == m) ? INT_MAX : nums1[partitionX];
+        
+        int maxLeftY = (partitionY == 0) ? INT_MIN : nums2[partitionY - 1];
+        int minRightY = (partitionY == n) ? INT_MAX : nums2[partitionY];
+        
+        // Correct partition found
+        if (maxLeftX <= minRightY && maxLeftY <= minRightX) {
+            // Odd number of total elements
+            if ((m + n) % 2 != 0) {
+                return (double)MAX(maxLeftX, maxLeftY);
+            }
+            // Even number of total elements
+            return (MAX(maxLeftX, maxLeftY) + MIN(minRightX, minRightY)) / 2.0;
+        }
+        // Partition is too far right; move it left
+        else if (maxLeftX > minRightY) {
+            high = partitionX - 1;
+        }
+        // Partition is too far left; move it right
+        else {
+            low = partitionX + 1;
+        }
+    }
+    
+    return 0.0;
+}
+_______________________________________________________________________________________________________________________________________________________
+#include <limits.h>
+
+int reverse(int x) {
+    int reversed = 0;
+    
+    while (x != 0) {
+        int pop = x % 10;
+        x /= 10;
+        
+        // Check for positive overflow before multiplying by 10
+        if (reversed > INT_MAX / 10 || (reversed == INT_MAX / 10 && pop > 7)) {
+            return 0;
+        }
+        
+        // Check for negative overflow before multiplying by 10
+        if (reversed < INT_MIN / 10 || (reversed == INT_MIN / 10 && pop < -8)) {
+            return 0;
+        }
+        
+        reversed = reversed * 10 + pop;
+    }
+    
+    return reversed;
+}
+_________________________________________________________________________________________________________________________________________________________________
+
+#include <stdbool.h>
+
+bool isPalindrome(int x) {
+    // Negative numbers are not palindromes (due to the '-' sign)
+    // Numbers ending in 0 are not palindromes, except 0 itself
+    if (x < 0 || (x % 10 == 0 && x != 0)) {
+        return false;
+    }
+
+    int reversedHalf = 0;
+    // Reverse the digits of the second half of the number
+    while (x > reversedHalf) {
+        reversedHalf = (reversedHalf * 10) + (x % 10);
+        x /= 10;
+    }
+    // For even length numbers: x == reversedHalf
+    // For odd length numbers: x == reversedHalf / 10 (removes the middle digit)
+    return x == reversedHalf || x == reversedHalf / 10;
+}
+___________________________________________________________________________________________________________________________________________________________
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     struct ListNode *next;
+ * };
+ */
+struct ListNode* mergeTwoLists(struct ListNode* list1, struct ListNode* list2) {
+    // Create a local dummy node to build the new list
+    struct ListNode dummy;
+    struct ListNode *current = &dummy;
+    dummy.next = NULL;
+
+    // Compare nodes from both lists and link the smaller one
+    while (list1 != NULL && list2 != NULL) {
+        if (list1->val <= list2->val) {
+            current->next = list1;
+            list1 = list1->next;
+        } else {
+            current->next = list2;
+            list2 = list2->next;
+        }
+        current = current->next;
+    }
+
+    // Attach the remaining elements of the unfinished list
+    if (list1 != NULL) {
+        current->next = list1;
+    } else {
+        current->next = list2;
+    }
+
+    // Return the head of the merged list
+    return dummy.next;
+}
+_________________________________________________________________________________________________________________________________________________________

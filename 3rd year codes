@@ -246,3 +246,2393 @@ struct ListNode* mergeTwoLists(struct ListNode* list1, struct ListNode* list2) {
     return dummy.next;
 }
 _________________________________________________________________________________________________________________________________________________________
+18/08/26           HACKER RANK PROBLEMS GIVEN BY MAM
+
+1. 
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include <stdlib.h>
+
+#define MAX_SIZE 100005
+
+// Structure representing the Queue using two stacks
+typedef struct {
+    int stack1[MAX_SIZE];
+    int stack2[MAX_SIZE];
+    int top1;
+    int top2;
+} QueueWithStacks;
+
+// Initialize the queue
+void initQueue(QueueWithStacks *q) {
+    q->top1 = -1;
+    q->top2 = -1;
+}
+
+// Push an element onto stack1
+void enqueue(QueueWithStacks *q, int x) {
+    q->stack1[++(q->top1)] = x;
+}
+
+// Helper function to shift elements from stack1 to stack2
+void shiftStacks(QueueWithStacks *q) {
+    if (q->top2 == -1) {
+        while (q->top1 != -1) {
+            q->stack2[++(q->top2)] = q->stack1[q->top1--];
+        }
+    }
+}
+
+// Remove the front element
+void dequeue(QueueWithStacks *q) {
+    shiftStacks(q);
+    if (q->top2 != -1) {
+        q->top2--;
+    }
+}
+
+// Return the front element
+int peek(QueueWithStacks *q) {
+    shiftStacks(q);
+    if (q->top2 != -1) {
+        return q->stack2[q->top2];
+    }
+    return -1; // Should not be reached based on constraints
+}
+
+int main() {
+    int queries;
+    if (scanf("%d", &queries) != 1) return 0;
+    
+    QueueWithStacks q;
+    initQueue(&q);
+    
+    for (int i = 0; i < queries; i++) {
+        int type;
+        scanf("%d", &type);
+        
+        if (type == 1) {
+            int x;
+            scanf("%d", &x);
+            enqueue(&q, x);
+        } else if (type == 2) {
+            dequeue(&q);
+        } else if (type == 3) {
+            printf("%d\n", peek(&q));
+        }
+    }
+    
+    return 0;
+}
+____________________________________________________________________________________________________________________________________________________________________
+2.
+import sys
+from collections import deque
+class Solution:
+    def __init__(self):
+        # Initialize the stack and queue instance variables
+        self.stack = []
+        self.queue = deque()
+
+    def pushCharacter(self, ch):
+        # Push a character onto the stack
+        self.stack.append(ch)
+
+    def enqueueCharacter(self, ch):
+        # Enqueue a character into the queue
+        self.queue.append(ch)
+
+    def popCharacter(self):
+        # Pop and return the character at the top of the stack
+        return self.stack.pop()
+
+    def dequeueCharacter(self):
+        # Dequeue and return the first character from the queue
+        return self.queue.popleft()
+
+# read the string s
+s=raw_input()
+#Create the Solution class object
+obj=Solution()   
+
+l=len(s)
+# push/enqueue all the characters of string s to stack
+for i in range(l):
+    obj.pushCharacter(s[i])
+    obj.enqueueCharacter(s[i])
+    
+isPalindrome=True
+'''
+pop the top character from stack
+dequeue the first character from queue
+compare both the characters
+''' 
+for i in range(l / 2):
+    if obj.popCharacter()!=obj.dequeueCharacter():
+        isPalindrome=False
+        break
+#finally print whether string s is palindrome or not.
+if isPalindrome:
+    sys.stdout.write ("The word, "+s+", is a palindrome.")
+else:
+    sys.stdout.write ("The word, "+s+", is not a palindrome.")   
+__________________________________________________________________________________________________________________________________________________________
+3.
+#include <stdio.h>
+#include <stdlib.h>
+
+// Helper function to pre-generate the first q primes using plain integers
+void get_primes(int q, int* primes) {
+    int count = 0;
+    int num = 2;
+    while (count < q) {
+        int is_prime = 1; // 1 means true
+        for (int i = 2; i * i <= num; i++) {
+            if (num % i == 0) {
+                is_prime = 0; // 0 means false
+                break;
+            }
+        }
+        if (is_prime) {
+            primes[count++] = num;
+        }
+        num++;
+    }
+}
+
+/*
+ * Complete the 'waiter' function below.
+ *
+ * The function accepts following parameters:
+ *  1. int number_count: size of the plate array
+ *  2. int* number: the plate numbers array
+ *  3. int q: number of iterations
+ *  4. int* result_count: pointer to store the size of the returned array
+ */
+int* waiter(int number_count, int* number, int q, int* result_count) {
+    // Generate the required prime numbers
+    int* primes = (int*)malloc(q * sizeof(int));
+    get_primes(q, primes);
+
+    // Allocate memory for our final answers array
+    int* answers = (int*)malloc(number_count * sizeof(int));
+    int answers_idx = 0;
+
+    // Allocate dynamic arrays to simulate stacks matching maximum number of plates
+    int* current_A = (int*)malloc(number_count * sizeof(int));
+    int* next_A = (int*)malloc(number_count * sizeof(int));
+    int* B = (int*)malloc(number_count * sizeof(int));
+
+    // Populate initial stack A from the input number array
+    int current_A_top = -1;
+    for (int i = 0; i < number_count; i++) {
+        current_A[++current_A_top] = number[i];
+    }
+
+    // Process each prime iteration
+    for (int i = 0; i < q; i++) {
+        int current_prime = primes[i];
+        int next_A_top = -1;
+        int B_top = -1;
+
+        // Process all elements from the top of current stack A
+        while (current_A_top >= 0) {
+            int plate = current_A[current_A_top--];
+            if (plate % current_prime == 0) {
+                B[++B_top] = plate;
+            } else {
+                next_A[++next_A_top] = plate;
+            }
+        }
+
+        // Pop all elements from stack B (top to bottom) into the answers array
+        while (B_top >= 0) {
+            answers[answers_idx++] = B[B_top--];
+        }
+
+        // Swap next_A and current_A tracking pointers for the next loop run
+        int* temp = current_A;
+        current_A = next_A;
+        next_A = temp;
+        current_A_top = next_A_top;
+    }
+
+    // After all iterations are done, pop remaining elements in stack A into answers
+    while (current_A_top >= 0) {
+        answers[answers_idx++] = current_A[current_A_top--];
+    }
+
+    // Set the output element array count tracker for HackerRank wrapper
+    *result_count = number_count;
+
+    // Free temporary structural storage setups
+    free(primes);
+    free(current_A);
+    free(next_A);
+    free(B);
+
+    return answers;
+}
+
+int main() {
+    int n, q;
+    if (scanf("%d %d", &n, &q) != 2) return 0;
+
+    int* number = (int*)malloc(n * sizeof(int));
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &number[i]);
+    }
+
+    int result_count;
+    int* result = waiter(n, number, q, &result_count);
+
+    // Print values out to standard output
+    for (int i = 0; i < result_count; i++) {
+        printf("%d\n", result[i]);
+    }
+
+    // Final memory cleanup 
+    free(number);
+    free(result);
+
+    return 0;
+}
+_________________________________________________________________________________________________________________________________________________________________
+4.
+#include <assert.h>
+#include <ctype.h>
+#include <limits.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+char* readline();
+char* ltrim(char*);
+char* rtrim(char*);
+char** split_string(char*);
+int parse_int(char*);
+
+/*
+ * Complete the 'andXorOr' function below.
+ *
+ * The function is expected to return an INTEGER.
+ * The function accepts INTEGER_ARRAY a as parameter.
+ */
+int andXorOr(int a_count, int* a) {
+    int* stack = (int*)malloc(a_count * sizeof(int));
+    int top = -1;
+    int max_value = 0;
+
+    for (int i = 0; i < a_count; i++) {
+        while (top >= 0) {
+            int current_xor = a[i] ^ stack[top];
+            if (current_xor > max_value) {
+                max_value = current_xor;
+            }
+
+            if (a[i] < stack[top]) {
+                top--;
+            } else {
+                break;
+            }
+        }
+        stack[++top] = a[i];
+    }
+
+    free(stack);
+    return max_value;
+}
+
+int main()
+{
+    FILE* fptr = fopen(getenv("OUTPUT_PATH"), "w");
+    if (!fptr) {
+        fptr = stdout;
+    }
+
+    int a_count = parse_int(ltrim(rtrim(readline())));
+    char** a_temp = split_string(rtrim(readline()));
+    int* a = malloc(a_count * sizeof(int));
+
+    for (int i = 0; i < a_count; i++) {
+        int a_item = parse_int(*(a_temp + i));
+        *(a + i) = a_item;
+    }
+
+    int result = andXorOr(a_count, a);
+
+    fprintf(fptr, "%d\n", result);
+    fclose(fptr);
+
+    free(a);
+    free(a_temp);
+
+    return 0;
+}
+
+char* readline() {
+    size_t alloc_length = 1024;
+    size_t data_length = 0;
+    char* data = malloc(alloc_length);
+
+    while (true) {
+        char* cursor = data + data_length;
+        char* line = fgets(cursor, alloc_length - data_length, stdin);
+
+        if (!line) {
+            break;
+        }
+
+        data_length += strlen(cursor);
+        if (data_length < alloc_length - 1 || data[data_length - 1] == '\n') {
+            break;
+        }
+
+        alloc_length <<= 1;
+        data = realloc(data, alloc_length);
+        if (!data) {
+            return NULL;
+        }
+    }
+
+    if (data_length == 0) {
+        free(data);
+        return NULL;
+    }
+
+    if (data[data_length - 1] == '\n') {
+        data[data_length - 1] = '\0';
+    } else {
+        data = realloc(data, data_length + 1);
+        data[data_length] = '\0';
+    }
+
+    return data;
+}
+
+char* ltrim(char* str) {
+    if (!str || !*str) {
+        return str;
+    }
+    while (*str != '\0' && isspace(*str)) {
+        str++;
+    }
+    return str;
+}
+
+char* rtrim(char* str) {
+    if (!str || !*str) {
+        return str;
+    }
+    char* end = str + strlen(str) - 1;
+    while (end >= str && isspace(*end)) {
+        end--;
+    }
+    *(end + 1) = '\0';
+    return str;
+}
+
+char** split_string(char* str) {
+    char** splits = NULL;
+    char* token = strtok(str, " ");
+    int spaces = 0;
+
+    while (token) {
+        splits = realloc(splits, sizeof(char*) * ++spaces);
+        if (!splits) {
+            return NULL;
+        }
+        splits[spaces - 1] = token;
+        token = strtok(NULL, " ");
+    }
+    return splits;
+}
+
+int parse_int(char* str) {
+    char* endptr;
+    int value = strtol(str, &endptr, 10);
+    if (endptr == str || *endptr != '\0') {
+        exit(EXIT_FAILURE);
+    }
+    return value;
+}
+_____________________________________________________________________________________________________________________________________________________________
+5.
+#include <assert.h>
+#include <ctype.h>
+#include <limits.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+char* readline();
+char* ltrim(char*);
+char* rtrim(char*);
+char** split_string(char*);
+int parse_int(char*);
+
+// Structure representing an element in our stack
+typedef struct {
+    int value;
+    int days;
+} StackElement;
+
+/*
+ * Complete the 'poisonousPlants' function below.
+ *
+ * The function is expected to return an INTEGER.
+ * The function accepts INTEGER_ARRAY p as parameter.
+ */
+int poisonousPlants(int p_count, int* p) {
+    if (p_count <= 1) return 0;
+
+    // Dynamically allocate the stack array
+    StackElement* stack = (StackElement*)malloc(p_count * sizeof(StackElement));
+    int top = -1;
+    int max_days = 0;
+
+    for (int i = 0; i < p_count; i++) {
+        int current_days = 0;
+
+        // Pop elements from the stack that are greater than or equal to the current plant
+        while (top >= 0 && stack[top].value >= p[i]) {
+            if (stack[top].days > current_days) {
+                current_days = stack[top].days;
+            }
+            top--;
+        }
+
+        // If the stack is empty after popping, this plant has the minimum 
+        // pesticide seen so far from the left, so it will never die.
+        if (top == -1) {
+            current_days = 0;
+        } else {
+            // Otherwise, it dies 1 day after the maximum days of the intermediate popped elements
+            current_days += 1;
+        }
+
+        // Keep track of the overall maximum days needed for the garden to stabilize
+        if (current_days > max_days) {
+            max_days = current_days;
+        }
+
+        // Push current element onto our monotonic tracking stack
+        top++;
+        stack[top].value = p[i];
+        stack[top].days = current_days;
+    }
+
+    free(stack);
+    return max_days;
+}
+
+int main()
+{
+    FILE* fptr = fopen(getenv("OUTPUT_PATH"), "w");
+    if (!fptr) {
+        fptr = stdout;
+    }
+
+    int n = parse_int(ltrim(rtrim(readline())));
+    char** p_temp = split_string(rtrim(readline()));
+    int* p = malloc(n * sizeof(int));
+
+    for (int i = 0; i < n; i++) {
+        int p_item = parse_int(*(p_temp + i));
+        *(p + i) = p_item;
+    }
+
+    int result = poisonousPlants(n, p);
+
+    fprintf(fptr, "%d\n", result);
+    fclose(fptr);
+
+    free(p);
+    free(p_temp);
+
+    return 0;
+}
+
+char* readline() {
+    size_t alloc_length = 1024;
+    size_t data_length = 0;
+    char* data = malloc(alloc_length);
+
+    while (true) {
+        char* cursor = data + data_length;
+        char* line = fgets(cursor, alloc_length - data_length, stdin);
+
+        if (!line) {
+            break;
+        }
+
+        data_length += strlen(cursor);
+        if (data_length < alloc_length - 1 || data[data_length - 1] == '\n') {
+            break;
+        }
+
+        alloc_length <<= 1;
+        data = realloc(data, alloc_length);
+        if (!data) {
+            return NULL;
+        }
+    }
+
+    if (data_length == 0) {
+        free(data);
+        return NULL;
+    }
+
+    if (data[data_length - 1] == '\n') {
+        data[data_length - 1] = '\0';
+    } else {
+        data = realloc(data, data_length + 1);
+        data[data_length] = '\0';
+    }
+
+    return data;
+}
+
+char* ltrim(char* str) {
+    if (!str || !*str) {
+        return str;
+    }
+    while (*str != '\0' && isspace(*str)) {
+        str++;
+    }
+    return str;
+}
+
+char* rtrim(char* str) {
+    if (!str || !*str) {
+        return str;
+    }
+    char* end = str + strlen(str) - 1;
+    while (end >= str && isspace(*end)) {
+        end--;
+    }
+    *(end + 1) = '\0';
+    return str;
+}
+
+char** split_string(char* str) {
+    char** splits = NULL;
+    char* token = strtok(str, " ");
+    int spaces = 0;
+
+    while (token) {
+        splits = realloc(splits, sizeof(char*) * ++spaces);
+        if (!splits) {
+            return NULL;
+        }
+        splits[spaces - 1] = token;
+        token = strtok(NULL, " ");
+    }
+    return splits;
+}
+
+int parse_int(char* str) {
+    char* endptr;
+    int value = strtol(str, &endptr, 10);
+    if (endptr == str || *endptr != '\0') {
+        exit(EXIT_FAILURE);
+    }
+    return value;
+}
+_____________________________________________________________________________________________________________________________________________________________
+6.
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include <stdlib.h>
+
+#define MAX_OPS 1000005
+#define MAX_LEN 1000005
+
+// Stack to hold history of string snapshots for Undo operations
+char* history_stack[MAX_OPS];
+int stack_top = -1;
+
+void push_history(const char* current_str) {
+    stack_top++;
+    history_stack[stack_top] = strdup(current_str);
+}
+
+char* pop_history() {
+    if (stack_top >= 0) {
+        char* last_state = history_stack[stack_top];
+        stack_top--;
+        return last_state;
+    }
+    return NULL;
+}
+
+int main() {
+    int q;
+    if (scanf("%d", &q) != 1) return 0;
+
+    // Allocate memory for the active string editor
+    char* S = (char*)malloc(MAX_LEN * sizeof(char));
+    S[0] = '\0';
+    int S_len = 0;
+
+    char append_buf[MAX_LEN];
+
+    for (int i = 0; i < q; i++) {
+        int type;
+        scanf("%d", &type);
+
+        if (type == 1) {
+            // Append operation: Save state, then add string
+            push_history(S);
+            scanf("%s", append_buf);
+            int append_len = strlen(append_buf);
+            strcpy(S + S_len, append_buf);
+            S_len += append_len;
+        } 
+        else if (type == 2) {
+            // Delete operation: Save state, then shorten string lengths
+            push_history(S);
+            int k;
+            scanf("%d", &k);
+            S_len -= k;
+            S[S_len] = '\0';
+        } 
+        else if (type == 3) {
+            // Print operation: 1-indexed print target character
+            int k;
+            scanf("%d", &k);
+            printf("%c\n", S[k - 1]);
+        } 
+        else if (type == 4) {
+            // Undo operation: Revert to the last saved structural history
+            char* previous_state = pop_history();
+            if (previous_state != NULL) {
+                strcpy(S, previous_state);
+                S_len = strlen(S);
+                free(previous_state); // Clean up popped memory
+            }
+        }
+    }
+
+    // Clean up allocated storage bounds before exiting
+    free(S);
+    while (stack_top >= 0) {
+        free(history_stack[stack_top--]);
+    }
+
+    return 0;
+}
+___________________________________________________________________________________________________________________________________________________
+7.
+#include <assert.h>
+#include <ctype.h>
+#include <limits.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+char* readline();
+char* ltrim(char*);
+char* rtrim(char*);
+char** split_string(char*);
+int parse_int(char*);
+
+/*
+ * Complete the 'solve' function below.
+ *
+ * The function is expected to return an INTEGER_ARRAY.
+ * The function accepts following parameters:
+ *  1. INTEGER_ARRAY arr
+ *  2. INTEGER_ARRAY queries
+ */
+int* solve(int arr_count, int* arr, int queries_count, int* queries, int* result_count) {
+    // Allocate memory for the final output answers list
+    int* result = (int*)malloc(queries_count * sizeof(int));
+    *result_count = queries_count;
+
+    // Allocate an index tracker array to act as a double-ended queue (deque)
+    int* deque = (int*)malloc(arr_count * sizeof(int));
+
+    for (int q = 0; q < queries_count; q++) {
+        int d = queries[q];
+        int head = 0;
+        int tail = 0;
+        int min_of_maxes = INT_MAX;
+
+        for (int i = 0; i < arr_count; i++) {
+            // Remove elements out of the current sliding window frame range from front
+            if (head < tail && deque[head] < i - d + 1) {
+                head++;
+            }
+
+            // Remove elements smaller than the currently incoming item from back
+            while (head < tail && arr[deque[tail - 1]] <= arr[i]) {
+                tail--;
+            }
+
+            // Insert current index into the deque
+            deque[tail++] = i;
+
+            // Once we have a complete initial window frame size, track the min of max values
+            if (i >= d - 1) {
+                int current_max = arr[deque[head]];
+                if (current_max < min_of_maxes) {
+                    min_of_maxes = current_max;
+                }
+            }
+        }
+        result[q] = min_of_maxes;
+    }
+
+    free(deque);
+    return result;
+}
+
+int main()
+{
+    FILE* fptr = fopen(getenv("OUTPUT_PATH"), "w");
+    if (!fptr) {
+        fptr = stdout;
+    }
+
+    char** first_multiple_input = split_string(rtrim(readline()));
+    int n = parse_int(*(first_multiple_input + 0));
+    int q = parse_int(*(first_multiple_input + 1));
+
+    char** arr_temp = split_string(rtrim(readline()));
+    int* arr = malloc(n * sizeof(int));
+
+    for (int i = 0; i < n; i++) {
+        int arr_item = parse_int(*(arr_temp + i));
+        *(arr + i) = arr_item;
+    }
+
+    int* queries = malloc(q * sizeof(int));
+    for (int i = 0; i < q; i++) {
+        int queries_item = parse_int(ltrim(rtrim(readline())));
+        *(queries + i) = queries_item;
+    }
+
+    int result_count;
+    int* result = solve(n, arr, q, queries, &result_count);
+
+    for (int i = 0; i < result_count; i++) {
+        fprintf(fptr, "%d", *(result + i));
+        if (i != result_count - 1) {
+            fprintf(fptr, "\n");
+        }
+    }
+
+    fprintf(fptr, "\n");
+    fclose(fptr);
+
+    free(arr);
+    free(queries);
+    free(result);
+
+    return 0;
+}
+
+char* readline() {
+    size_t alloc_length = 1024;
+    size_t data_length = 0;
+    char* data = malloc(alloc_length);
+
+    while (true) {
+        char* cursor = data + data_length;
+        char* line = fgets(cursor, alloc_length - data_length, stdin);
+
+        if (!line) {
+            break;
+        }
+
+        data_length += strlen(cursor);
+        if (data_length < alloc_length - 1 || data[data_length - 1] == '\n') {
+            break;
+        }
+
+        alloc_length <<= 1;
+        data = realloc(data, alloc_length);
+        if (!data) {
+            return NULL;
+        }
+    }
+
+    if (data_length == 0) {
+        free(data);
+        return NULL;
+    }
+
+    if (data[data_length - 1] == '\n') {
+        data[data_length - 1] = '\0';
+    } else {
+        data = realloc(data, data_length + 1);
+        data[data_length] = '\0';
+    }
+
+    return data;
+}
+
+char* ltrim(char* str) {
+    if (!str || !*str) {
+        return str;
+    }
+    while (*str != '\0' && isspace(*str)) {
+        str++;
+    }
+    return str;
+}
+
+char* rtrim(char* str) {
+    if (!str || !*str) {
+        return str;
+    }
+    char* end = str + strlen(str) - 1;
+    while (end >= str && isspace(*end)) {
+        end--;
+    }
+    *(end + 1) = '\0';
+    return str;
+}
+
+char** split_string(char* str) {
+    char** splits = NULL;
+    char* token = strtok(str, " ");
+    int spaces = 0;
+
+    while (token) {
+        splits = realloc(splits, sizeof(char*) * ++spaces);
+        if (!splits) {
+            return NULL;
+        }
+        splits[spaces - 1] = token;
+        token = strtok(NULL, " ");
+    }
+    return splits;
+}
+
+int parse_int(char* str) {
+    char* endptr;
+    int value = strtol(str, &endptr, 10);
+    if (endptr == str || *endptr != '\0') {
+        exit(EXIT_FAILURE);
+    }
+    return value;
+}
+___________________________________________________________________________________________________________________________________________________________
+8.
+#include <assert.h>
+#include <ctype.h>
+#include <limits.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+char* readline();
+char* ltrim(char*);
+char* rtrim(char*);
+char** split_string(char*);
+int parse_int(char*);
+
+/*
+ * Complete the 'largestRectangle' function below.
+ *
+ * The function is expected to return a LONG_INTEGER.
+ * The function accepts INTEGER_ARRAY h as parameter.
+ */
+long largestRectangle(int h_count, int* h) {
+    // Stack to store indices of buildings
+    int* stack = (int*)malloc((h_count + 1) * sizeof(int));
+    int top = -1;
+    long max_area = 0;
+    
+    int i = 0;
+    while (i < h_count) {
+        // If stack is empty or current building is taller than the top building
+        if (top == -1 || h[i] >= h[stack[top]]) {
+            stack[++top] = i++;
+        } else {
+            // Pop the top building index
+            int tp = stack[top--];
+            
+            // Calculate the width of the rectangle with h[tp] as the smallest height
+            long width = (top == -1) ? i : (i - stack[top] - 1);
+            long area = (long)h[tp] * width;
+            
+            if (area > max_area) {
+                max_area = area;
+            }
+        }
+    }
+    
+    // Process any remaining buildings left in the stack
+    while (top != -1) {
+        int tp = stack[top--];
+        long width = (top == -1) ? i : (i - stack[top] - 1);
+        long area = (long)h[tp] * width;
+        
+        if (area > max_area) {
+            max_area = area;
+        }
+    }
+    
+    free(stack);
+    return max_area;
+}
+
+int main()
+{
+    FILE* fptr = fopen(getenv("OUTPUT_PATH"), "w");
+    if (!fptr) {
+        fptr = stdout;
+    }
+
+    int n = parse_int(ltrim(rtrim(readline())));
+    char** h_temp = split_string(rtrim(readline()));
+    int* h = malloc(n * sizeof(int));
+
+    for (int i = 0; i < n; i++) {
+        int h_item = parse_int(*(h_temp + i));
+        *(h + i) = h_item;
+    }
+
+    long result = largestRectangle(n, h);
+
+    fprintf(fptr, "%ld\n", result);
+    fclose(fptr);
+
+    free(h);
+    free(h_temp);
+
+    return 0;
+}
+
+char* readline() {
+    size_t alloc_length = 1024;
+    size_t data_length = 0;
+    char* data = malloc(alloc_length);
+
+    while (true) {
+        char* cursor = data + data_length;
+        char* line = fgets(cursor, alloc_length - data_length, stdin);
+
+        if (!line) {
+            break;
+        }
+
+        data_length += strlen(cursor);
+        if (data_length < alloc_length - 1 || data[data_length - 1] == '\n') {
+            break;
+        }
+
+        alloc_length <<= 1;
+        data = realloc(data, alloc_length);
+        if (!data) {
+            return NULL;
+        }
+    }
+
+    if (data_length == 0) {
+        free(data);
+        return NULL;
+    }
+
+    if (data[data_length - 1] == '\n') {
+        data[data_length - 1] = '\0';
+    } else {
+        data = realloc(data, data_length + 1);
+        data[data_length] = '\0';
+    }
+
+    return data;
+}
+
+char* ltrim(char* str) {
+    if (!str || !*str) {
+        return str;
+    }
+    while (*str != '\0' && isspace(*str)) {
+        str++;
+    }
+    return str;
+}
+
+char* rtrim(char* str) {
+    if (!str || !*str) {
+        return str;
+    }
+    char* end = str + strlen(str) - 1;
+    while (end >= str && isspace(*end)) {
+        end--;
+    }
+    *(end + 1) = '\0';
+    return str;
+}
+
+char** split_string(char* str) {
+    char** splits = NULL;
+    char* token = strtok(str, " ");
+    int spaces = 0;
+
+    while (token) {
+        splits = realloc(splits, sizeof(char*) * ++spaces);
+        if (!splits) {
+            return NULL;
+        }
+        splits[spaces - 1] = token;
+        token = strtok(NULL, " ");
+    }
+    return splits;
+}
+
+int parse_int(char* str) {
+    char* endptr;
+    int value = strtol(str, &endptr, 10);
+    if (endptr == str || *endptr != '\0') {
+        exit(EXIT_FAILURE);
+    }
+    return value;
+}
+_________________________________________________________________________________________________________________________________________________________
+9.
+#include <assert.h>
+#include <ctype.h>
+#include <limits.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+char* readline();
+char* ltrim(char*);
+char* rtrim(char*);
+char** split_string(char*);
+
+int parse_int(char*);
+
+/*
+ * Complete the 'twoStacks' function below.
+ *
+ * The function is expected to return an INTEGER.
+ * The function accepts following parameters:
+ *  1. INTEGER maxSum
+ *  2. INTEGER_ARRAY a
+ *  3. INTEGER_ARRAY b
+ */
+int twoStacks(int maxSum, int a_count, int* a, int b_count, int* b) {
+    int countA = 0;
+    int countB = 0;
+    long long current_sum = 0;
+
+    // Step 1: Pop as many items from stack 'a' as possible within maxSum bounds
+    while (countA < a_count && current_sum + a[countA] <= maxSum) {
+        current_sum += a[countA];
+        countA++;
+    }
+
+    // Capture the maximum score using elements exclusively from stack 'a'
+    int max_score = countA;
+
+    // Step 2: Incrementally add elements from stack 'b'
+    while (countB < b_count) {
+        current_sum += b[countB];
+        countB++;
+
+        // Step 3: Shrink elements of stack 'a' if total sum slips out of bounds
+        while (current_sum > maxSum && countA > 0) {
+            countA--;
+            current_sum -= a[countA];
+        }
+
+        // If the balance frame is valid, check the new cumulative maximum score
+        if (current_sum <= maxSum) {
+            int current_score = countA + countB;
+            if (current_score > max_score) {
+                max_score = current_score;
+            }
+        } else {
+            // Terminate if maxSum is breached and stack 'a' has been emptied
+            break;
+        }
+    }
+
+    return max_score;
+}
+
+int main()
+{
+    FILE* fptr = fopen(getenv("OUTPUT_PATH"), "w");
+    if (!fptr) {
+        fptr = stdout;
+    }
+
+    int g = parse_int(ltrim(rtrim(readline())));
+
+    for (int g_itr = 0; g_itr < g; g_itr++) {
+        char** first_multiple_input = split_string(rtrim(readline()));
+
+        int n = parse_int(*(first_multiple_input + 0));
+
+        int m = parse_int(*(first_multiple_input + 1));
+
+        int maxSum = parse_int(*(first_multiple_input + 2));
+
+        char** a_temp = split_string(rtrim(readline()));
+
+        int* a = malloc(n * sizeof(int));
+
+        for (int i = 0; i < n; i++) {
+            int a_item = parse_int(*(a_temp + i));
+
+            *(a + i) = a_item;
+        }
+
+        char** b_temp = split_string(rtrim(readline()));
+
+        int* b = malloc(m * sizeof(int));
+
+        for (int i = 0; i < m; i++) {
+            int b_item = parse_int(*(b_temp + i));
+
+            *(b + i) = b_item;
+        }
+
+        int result = twoStacks(maxSum, n, a, m, b);
+
+        fprintf(fptr, "%d\n", result);
+
+        free(a);
+        free(b);
+        free(a_temp);
+        free(b_temp);
+        free(first_multiple_input);
+    }
+
+    fclose(fptr);
+
+    return 0;
+}
+
+char* readline() {
+    size_t alloc_length = 1024;
+    size_t data_length = 0;
+
+    char* data = malloc(alloc_length);
+
+    while (true) {
+        char* cursor = data + data_length;
+        char* line = fgets(cursor, alloc_length - data_length, stdin);
+
+        if (!line) {
+            break;
+        }
+
+        data_length += strlen(cursor);
+
+        if (data_length < alloc_length - 1 || data[data_length - 1] == '\n') {
+            break;
+        }
+
+        alloc_length <<= 1;
+
+        data = realloc(data, alloc_length);
+
+        if (!data) {
+            data = '\0';
+
+            break;
+        }
+    }
+
+    if (data[data_length - 1] == '\n') {
+        data[data_length - 1] = '\0';
+
+        data = realloc(data, data_length);
+
+        if (!data) {
+            data = '\0';
+        }
+    } else {
+        data = realloc(data, data_length + 1);
+
+        if (!data) {
+            data = '\0';
+        } else {
+            data[data_length] = '\0';
+        }
+    }
+
+    return data;
+}
+
+char* ltrim(char* str) {
+    if (!str) {
+        return '\0';
+    }
+
+    if (!*str) {
+        return str;
+    }
+
+    while (*str != '\0' && isspace(*str)) {
+        str++;
+    }
+
+    return str;
+}
+
+char* rtrim(char* str) {
+    if (!str) {
+        return '\0';
+    }
+
+    if (!*str) {
+        return str;
+    }
+
+    char* end = str + strlen(str) - 1;
+
+    while (end >= str && isspace(*end)) {
+        end--;
+    }
+
+    *(end + 1) = '\0';
+
+    return str;
+}
+
+char** split_string(char* str) {
+    char** splits = NULL;
+    char* token = strtok(str, " ");
+
+    int spaces = 0;
+
+    while (token) {
+        splits = realloc(splits, sizeof(char*) * ++spaces);
+
+        if (!splits) {
+            return splits;
+        }
+
+        splits[spaces - 1] = token;
+
+        token = strtok(NULL, " ");
+    }
+
+    return splits;
+}
+
+int parse_int(char* str) {
+    char* endptr;
+    int value = strtol(str, &endptr, 10);
+
+    if (endptr == str || *endptr != '\0') {
+        exit(EXIT_FAILURE);
+    }
+
+    return value;
+}
+____________________________________________________________________________________________________________________________________________________________
+10.
+#include <assert.h>
+#include <ctype.h>
+#include <limits.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+char* readline();
+char* ltrim(char*);
+char* rtrim(char*);
+char** split_string(char*);
+int parse_int(char*);
+
+/*
+ * Complete the 'truckTour' function below.
+ *
+ * The function is expected to return an INTEGER.
+ * The function accepts 2D_INTEGER_ARRAY petrolpumps as parameter.
+ */
+int truckTour(int petrolpumps_rows, int petrolpumps_columns, int** petrolpumps) {
+    int start_index = 0;
+    long long current_petrol = 0;
+
+    for (int i = 0; i < petrolpumps_rows; i++) {
+        // Fetch the petrol quantity and distance to the next pump
+        int petrol = petrolpumps[i][0];
+        int distance = petrolpumps[i][1];
+
+        current_petrol += (petrol - distance);
+
+        // If petrol dips below 0, this starting point is invalid
+        if (current_petrol < 0) {
+            start_index = i + 1;
+            current_petrol = 0;
+        }
+    }
+
+    return start_index;
+}
+
+int main()
+{
+    FILE* fptr = fopen(getenv("OUTPUT_PATH"), "w");
+    if (!fptr) {
+        fptr = stdout;
+    }
+
+    int n = parse_int(ltrim(rtrim(readline())));
+
+    int** petrolpumps = malloc(n * sizeof(int*));
+
+    for (int i = 0; i < n; i++) {
+        *(petrolpumps + i) = malloc(2 * (sizeof(int)));
+
+        char** petrolpumps_item_temp = split_string(rtrim(readline()));
+
+        for (int j = 0; j < 2; j++) {
+            int petrolpumps_item = parse_int(*(petrolpumps_item_temp + j));
+
+            *(*(petrolpumps + i) + j) = petrolpumps_item;
+        }
+        free(petrolpumps_item_temp);
+    }
+
+    int result = truckTour(n, 2, petrolpumps);
+
+    fprintf(fptr, "%d\n", result);
+    fclose(fptr);
+
+    // Free allocated dimensional memory elements 
+    for (int i = 0; i < n; i++) {
+        free(petrolpumps[i]);
+    }
+    free(petrolpumps);
+
+    return 0;
+}
+
+char* readline() {
+    size_t alloc_length = 1024;
+    size_t data_length = 0;
+    char* data = malloc(alloc_length);
+
+    while (true) {
+        char* cursor = data + data_length;
+        char* line = fgets(cursor, alloc_length - data_length, stdin);
+
+        if (!line) {
+            break;
+        }
+
+        data_length += strlen(cursor);
+        if (data_length < alloc_length - 1 || data[data_length - 1] == '\n') {
+            break;
+        }
+
+        alloc_length <<= 1;
+        data = realloc(data, alloc_length);
+        if (!data) {
+            return NULL;
+        }
+    }
+
+    if (data_length == 0) {
+        free(data);
+        return NULL;
+    }
+
+    if (data[data_length - 1] == '\n') {
+        data[data_length - 1] = '\0';
+    } else {
+        data = realloc(data, data_length + 1);
+        data[data_length] = '\0';
+    }
+
+    return data;
+}
+
+char* ltrim(char* str) {
+    if (!str || !*str) {
+        return str;
+    }
+    while (*str != '\0' && isspace(*str)) {
+        str++;
+    }
+    return str;
+}
+
+char* rtrim(char* str) {
+    if (!str || !*str) {
+        return str;
+    }
+    char* end = str + strlen(str) - 1;
+    while (end >= str && isspace(*end)) {
+        end--;
+    }
+    *(end + 1) = '\0';
+    return str;
+}
+
+char** split_string(char* str) {
+    char** splits = NULL;
+    char* token = strtok(str, " ");
+    int spaces = 0;
+
+    while (token) {
+        splits = realloc(splits, sizeof(char*) * ++spaces);
+        if (!splits) {
+            return NULL;
+        }
+        splits[spaces - 1] = token;
+        token = strtok(NULL, " ");
+    }
+    return splits;
+}
+
+int parse_int(char* str) {
+    char* endptr;
+    int value = strtol(str, &endptr, 10);
+    if (endptr == str || *endptr != '\0') {
+        exit(EXIT_FAILURE);
+    }
+    return value;
+}
+_______________________________________________________________________________________________________________________________________________________________
+11.
+#include <assert.h>
+#include <ctype.h>
+#include <limits.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+char* readline();
+char* ltrim(char*);
+char* rtrim(char*);
+char** split_string(char*);
+int parse_int(char*);
+
+/*
+ * Complete the 'equalStacks' function below.
+ *
+ * The function is expected to return an INTEGER.
+ * The function accepts following parameters:
+ *  1. INTEGER_ARRAY h1
+ *  2. INTEGER_ARRAY h2
+ *  3. INTEGER_ARRAY h3
+ */
+int equalStacks(int h1_count, int* h1, int h2_count, int* h2, int h3_count, int* h3) {
+    long long sum1 = 0, sum2 = 0, sum3 = 0;
+
+    // Calculate total initial height for stack 1
+    for (int i = 0; i < h1_count; i++) sum1 += h1[i];
+    // Calculate total initial height for stack 2
+    for (int i = 0; i < h2_count; i++) sum2 += h2[i];
+    // Calculate total initial height for stack 3
+    for (int i = 0; i < h3_count; i++) sum3 += h3[i];
+
+    int i1 = 0, i2 = 0, i3 = 0;
+
+    // Keep removing the top elements from the tallest stack until heights match
+    while (sum1 != sum2 || sum2 != sum3) {
+        // If any stack becomes empty, they can only equalize at height 0
+        if (i1 == h1_count || i2 == h2_count || i3 == h3_count) {
+            return 0;
+        }
+
+        // Reduce the tallest stack
+        if (sum1 >= sum2 && sum1 >= sum3) {
+            sum1 -= h1[i1++];
+        } else if (sum2 >= sum1 && sum2 >= sum3) {
+            sum2 -= h2[i2++];
+        } else if (sum3 >= sum1 && sum3 >= sum2) {
+            sum3 -= h3[i3++];
+        }
+    }
+
+    return sum1;
+}
+
+int main()
+{
+    FILE* fptr = fopen(getenv("OUTPUT_PATH"), "w");
+    if (!fptr) {
+        fptr = stdout;
+    }
+
+    char** first_multiple_input = split_string(rtrim(readline()));
+    int n1 = parse_int(*(first_multiple_input + 0));
+    int n2 = parse_int(*(first_multiple_input + 1));
+    int n3 = parse_int(*(first_multiple_input + 2));
+
+    char** h1_temp = split_string(rtrim(readline()));
+    int* h1 = malloc(n1 * sizeof(int));
+    for (int i = 0; i < n1; i++) {
+        int h1_item = parse_int(*(h1_temp + i));
+        *(h1 + i) = h1_item;
+    }
+
+    char** h2_temp = split_string(rtrim(readline()));
+    int* h2 = malloc(n2 * sizeof(int));
+    for (int i = 0; i < n2; i++) {
+        int h2_item = parse_int(*(h2_temp + i));
+        *(h2 + i) = h2_item;
+    }
+
+    char** h3_temp = split_string(rtrim(readline()));
+    int* h3 = malloc(n3 * sizeof(int));
+    for (int i = 0; i < n3; i++) {
+        int h3_item = parse_int(*(h3_temp + i));
+        *(h3 + i) = h3_item;
+    }
+
+    int result = equalStacks(n1, h1, n2, h2, n3, h3);
+
+    fprintf(fptr, "%d\n", result);
+    fclose(fptr);
+
+    free(h1);
+    free(h2);
+    free(h3);
+    free(h1_temp);
+    free(h2_temp);
+    free(h3_temp);
+    free(first_multiple_input);
+
+    return 0;
+}
+
+char* readline() {
+    size_t alloc_length = 1024;
+    size_t data_length = 0;
+    char* data = malloc(alloc_length);
+
+    while (true) {
+        char* cursor = data + data_length;
+        char* line = fgets(cursor, alloc_length - data_length, stdin);
+
+        if (!line) {
+            break;
+        }
+
+        data_length += strlen(cursor);
+        if (data_length < alloc_length - 1 || data[data_length - 1] == '\n') {
+            break;
+        }
+
+        alloc_length <<= 1;
+        data = realloc(data, alloc_length);
+        if (!data) {
+            return NULL;
+        }
+    }
+
+    if (data_length == 0) {
+        free(data);
+        return NULL;
+    }
+
+    if (data[data_length - 1] == '\n') {
+        data[data_length - 1] = '\0';
+    } else {
+        data = realloc(data, data_length + 1);
+        data[data_length] = '\0';
+    }
+
+    return data;
+}
+
+char* ltrim(char* str) {
+    if (!str || !*str) {
+        return str;
+    }
+    while (*str != '\0' && isspace(*str)) {
+        str++;
+    }
+    return str;
+}
+
+char* rtrim(char* str) {
+    if (!str || !*str) {
+        return str;
+    }
+    char* end = str + strlen(str) - 1;
+    while (end >= str && isspace(*end)) {
+        end--;
+    }
+    *(end + 1) = '\0';
+    return str;
+}
+
+char** split_string(char* str) {
+    char** splits = NULL;
+    char* token = strtok(str, " ");
+    int spaces = 0;
+
+    while (token) {
+        splits = realloc(splits, sizeof(char*) * ++spaces);
+        if (!splits) {
+            return NULL;
+        }
+        splits[spaces - 1] = token;
+        token = strtok(NULL, " ");
+    }
+    return splits;
+}
+
+int parse_int(char* str) {
+    char* endptr;
+    int value = strtol(str, &endptr, 10);
+    if (endptr == str || *endptr != '\0') {
+        exit(EXIT_FAILURE);
+    }
+    return value;
+}
+______________________________________________________________________________________________________________________________________________________
+12.
+#include <assert.h>
+#include <ctype.h>
+#include <limits.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+char* readline();
+char* ltrim(char*);
+char* rtrim(char*);
+int parse_int(char*);
+
+#define MAX_N 1000000
+
+// Global array to store precomputed minimum moves
+int moves[MAX_N + 1];
+bool is_precomputed = false;
+
+// Precompute the minimum moves for all numbers up to 1,000,000
+void precompute() {
+    moves[0] = 0;
+    // 0 in the array denotes an uninitialized state for i > 0
+    for (int i = 1; i <= MAX_N; i++) {
+        moves[i] = 0;
+    }
+
+    for (int i = 1; i <= MAX_N; i++) {
+        // Option 1: Reduce by 1 from the previous number
+        if (moves[i] == 0 || moves[i] > moves[i - 1] + 1) {
+            moves[i] = moves[i - 1] + 1;
+        }
+
+        // Option 2: Push forward to multiples where 'i' is the max factor (i >= j)
+        for (int j = 2; j <= i && i * j <= MAX_N; j++) {
+            if (moves[i * j] == 0 || moves[i * j] > moves[i] + 1) {
+                moves[i * j] = moves[i] + 1;
+            }
+        }
+    }
+    is_precomputed = true;
+}
+
+/*
+ * Complete the 'downToZero' function below.
+ *
+ * The function is expected to return an INTEGER.
+ * The function accepts INTEGER n as parameter.
+ */
+int downToZero(int n) {
+    if (!is_precomputed) {
+        precompute();
+    }
+    return moves[n];
+}
+
+int main()
+{
+    FILE* fptr = fopen(getenv("OUTPUT_PATH"), "w");
+    if (!fptr) {
+        fptr = stdout;
+    }
+
+    int q = parse_int(ltrim(rtrim(readline())));
+
+    for (int q_itr = 0; q_itr < q; q_itr++) {
+        int n = parse_int(ltrim(rtrim(readline())));
+
+        int result = downToZero(n);
+
+        fprintf(fptr, "%d\n", result);
+    }
+
+    fclose(fptr);
+
+    return 0;
+}
+
+char* readline() {
+    size_t alloc_length = 1024;
+    size_t data_length = 0;
+    char* data = malloc(alloc_length);
+
+    while (true) {
+        char* cursor = data + data_length;
+        char* line = fgets(cursor, alloc_length - data_length, stdin);
+
+        if (!line) {
+            break;
+        }
+
+        data_length += strlen(cursor);
+        if (data_length < alloc_length - 1 || data[data_length - 1] == '\n') {
+            break;
+        }
+
+        alloc_length <<= 1;
+        data = realloc(data, alloc_length);
+        if (!data) {
+            return NULL;
+        }
+    }
+
+    if (data_length == 0) {
+        free(data);
+        return NULL;
+    }
+
+    if (data[data_length - 1] == '\n') {
+        data[data_length - 1] = '\0';
+    } else {
+        data = realloc(data, data_length + 1);
+        data[data_length] = '\0';
+    }
+
+    return data;
+}
+
+char* ltrim(char* str) {
+    if (!str || !*str) {
+        return str;
+    }
+    while (*str != '\0' && isspace(*str)) {
+        str++;
+    }
+    return str;
+}
+
+char* rtrim(char* str) {
+    if (!str || !*str) {
+        return str;
+    }
+    char* end = str + strlen(str) - 1;
+    while (end >= str && isspace(*end)) {
+        end--;
+    }
+    *(end + 1) = '\0';
+    return str;
+}
+
+int parse_int(char* str) {
+    char* endptr;
+    int value = strtol(str, &endptr, 10);
+    if (endptr == str || *endptr != '\0') {
+        exit(EXIT_FAILURE);
+    }
+    return value;
+}
+______________________________________________________________________________________________________________________________________________________
+13.
+#include <assert.h>
+#include <ctype.h>
+#include <limits.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+char* readline();
+char* ltrim(char*);
+char* rtrim(char*);
+char** split_string(char*);
+int parse_int(char*);
+
+// Queue element structure
+typedef struct {
+    int x;
+    int y;
+} Point;
+
+/*
+ * Complete the 'minimumMoves' function below.
+ *
+ * The function is expected to return an INTEGER.
+ * The function accepts following parameters:
+ *  1. STRING_ARRAY grid
+ *  2. INTEGER startX
+ *  3. INTEGER startY
+ *  4. INTEGER goalX
+ *  5. INTEGER goalY
+ */
+int minimumMoves(int grid_count, char** grid, int startX, int startY, int goalX, int goalY) {
+    if (startX == goalX && startY == goalY) return 0;
+
+    // Allocate 2D array to track minimum moves to reach each cell
+    int** moves = (int**)malloc(grid_count * sizeof(int*));
+    for (int i = 0; i < grid_count; i++) {
+        moves[i] = (int*)malloc(grid_count * sizeof(int));
+        for (int j = 0; j < grid_count; j++) {
+            moves[i][j] = INT_MAX;
+        }
+    }
+
+    // Allocate queue for BFS tracking
+    Point* queue = (Point*)malloc(grid_count * grid_count * sizeof(Point));
+    int head = 0, tail = 0;
+
+    // Initialize start position
+    moves[startX][startY] = 0;
+    queue[tail++] = (Point){startX, startY};
+
+    // Direction offsets: Up, Down, Left, Right
+    int dx[] = {-1, 1, 0, 0};
+    int dy[] = {0, 0, -1, 1};
+
+    while (head < tail) {
+        Point curr = queue[head++];
+        int current_move = moves[curr.x][curr.y];
+
+        // If goal is hit, return the optimal steps
+        if (curr.x == goalX && curr.y == goalY) {
+            int final_result = current_move;
+            
+            // Cleanup allocations before returning
+            for (int i = 0; i < grid_count; i++) free(moves[i]);
+            free(moves);
+            free(queue);
+            return final_result;
+        }
+
+        // Slide in all 4 directions
+        for (int d = 0; d < 4; d++) {
+            int nx = curr.x + dx[d];
+            int ny = curr.y + dy[d];
+
+            // Continue moving in the same direction until a obstacle or wall boundary is reached
+            while (nx >= 0 && nx < grid_count && ny >= 0 && ny < grid_count && grid[nx][ny] != 'X') {
+                if (moves[nx][ny] == INT_MAX) {
+                    moves[nx][ny] = current_move + 1;
+                    queue[tail++] = (Point){nx, ny};
+                }
+                nx += dx[d];
+                ny += dy[d];
+            }
+        }
+    }
+
+    // Fallback if unreachable
+    for (int i = 0; i < grid_count; i++) free(moves[i]);
+    free(moves);
+    free(queue);
+    return -1;
+}
+
+int main()
+{
+    FILE* fptr = fopen(getenv("OUTPUT_PATH"), "w");
+    if (!fptr) {
+        fptr = stdout;
+    }
+
+    int n = parse_int(ltrim(rtrim(readline())));
+
+    char** grid = malloc(n * sizeof(char*));
+
+    for (int i = 0; i < n; i++) {
+        char* grid_item = readline();
+        grid[i] = grid_item;
+    }
+
+    char** first_multiple_input = split_string(rtrim(readline()));
+
+    int startX = parse_int(*(first_multiple_input + 0));
+    int startY = parse_int(*(first_multiple_input + 1));
+    int goalX = parse_int(*(first_multiple_input + 2));
+    int goalY = parse_int(*(first_multiple_input + 3));
+
+    int result = minimumMoves(n, grid, startX, startY, goalX, goalY);
+
+    fprintf(fptr, "%d\n", result);
+    fclose(fptr);
+
+    free(grid);
+    free(first_multiple_input);
+
+    return 0;
+}
+
+char* readline() {
+    size_t alloc_length = 1024;
+    size_t data_length = 0;
+    char* data = malloc(alloc_length);
+
+    while (true) {
+        char* cursor = data + data_length;
+        char* line = fgets(cursor, alloc_length - data_length, stdin);
+
+        if (!line) {
+            break;
+        }
+
+        data_length += strlen(cursor);
+        if (data_length < alloc_length - 1 || data[data_length - 1] == '\n') {
+            break;
+        }
+
+        alloc_length <<= 1;
+        data = realloc(data, alloc_length);
+        if (!data) {
+            return NULL;
+        }
+    }
+
+    if (data_length == 0) {
+        free(data);
+        return NULL;
+    }
+
+    if (data[data_length - 1] == '\n') {
+        data[data_length - 1] = '\0';
+    } else {
+        data = realloc(data, data_length + 1);
+        data[data_length] = '\0';
+    }
+
+    return data;
+}
+
+char* ltrim(char* str) {
+    if (!str || !*str) {
+        return str;
+    }
+    while (*str != '\0' && isspace(*str)) {
+        str++;
+    }
+    return str;
+}
+
+char* rtrim(char* str) {
+    if (!str || !*str) {
+        return str;
+    }
+    char* end = str + strlen(str) - 1;
+    while (end >= str && isspace(*end)) {
+        end--;
+    }
+    *(end + 1) = '\0';
+    return str;
+}
+
+char** split_string(char* str) {
+    char** splits = NULL;
+    char* token = strtok(str, " ");
+    int spaces = 0;
+
+    while (token) {
+        splits = realloc(splits, sizeof(char*) * ++spaces);
+        if (!splits) {
+            return NULL;
+        }
+        splits[spaces - 1] = token;
+        token = strtok(NULL, " ");
+    }
+    return splits;
+}
+
+int parse_int(char* str) {
+    char* endptr;
+    int value = strtol(str, &endptr, 10);
+    if (endptr == str || *endptr != '\0') {
+        exit(EXIT_FAILURE);
+    }
+    return value;
+}
+__________________________________________________________________________________________________________________________________________________________________
+14.
+#include <assert.h>
+#include <ctype.h>
+#include <limits.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+char* readline();
+char* ltrim(char*);
+char* rtrim(char*);
+int parse_int(char*);
+
+/*
+ * Complete the 'isBalanced' function below.
+ *
+ * The function is expected to return a STRING.
+ * The function accepts STRING s as parameter.
+ */
+char* isBalanced(char* s) {
+    int len = strlen(s);
+    
+    // Allocate a tracking stack array matching the string length capacity bounds
+    char* stack = (char*)malloc(len * sizeof(char));
+    int top = -1;
+
+    for (int i = 0; i < len; i++) {
+        char ch = s[i];
+        
+        // Push opening brackets onto the stack
+        if (ch == '(' || ch == '[' || ch == '{') {
+            stack[++top] = ch;
+        } 
+        // Evaluate closing brackets against the stack top
+        else if (ch == ')' || ch == ']' || ch == '}') {
+            // Unbalanced if a closing bracket is found but stack is empty
+            if (top == -1) {
+                free(stack);
+                return "NO";
+            }
+            
+            char open = stack[top--];
+            // Check for structural mismatch errors
+            if ((ch == ')' && open != '(') ||
+                (ch == ']' && open != '[') ||
+                (ch == '}' && open != '{')) {
+                free(stack);
+                return "NO";
+            }
+        }
+    }
+
+    // It is only balanced if the stack is completely empty at the end
+    bool balanced = (top == -1);
+    free(stack);
+    
+    return balanced ? "YES" : "NO";
+}
+
+int main()
+{
+    FILE* fptr = fopen(getenv("OUTPUT_PATH"), "w");
+    if (!fptr) {
+        fptr = stdout;
+    }
+
+    int t = parse_int(ltrim(rtrim(readline())));
+
+    for (int t_itr = 0; t_itr < t; t_itr++) {
+        char* s = readline();
+
+        char* result = isBalanced(s);
+
+        fprintf(fptr, "%s\n", result);
+        free(s); // Free string allocated by readline
+    }
+
+    fclose(fptr);
+
+    return 0;
+}
+
+char* readline() {
+    size_t alloc_length = 1024;
+    size_t data_length = 0;
+    char* data = malloc(alloc_length);
+
+    while (true) {
+        char* cursor = data + data_length;
+        char* line = fgets(cursor, alloc_length - data_length, stdin);
+
+        if (!line) {
+            break;
+        }
+
+        data_length += strlen(cursor);
+        if (data_length < alloc_length - 1 || data[data_length - 1] == '\n') {
+            break;
+        }
+
+        alloc_length <<= 1;
+        data = realloc(data, alloc_length);
+        if (!data) {
+            return NULL;
+        }
+    }
+
+    if (data_length == 0) {
+        free(data);
+        return NULL;
+    }
+
+    if (data[data_length - 1] == '\n') {
+        data[data_length - 1] = '\0';
+    } else {
+        data = realloc(data, data_length + 1);
+        data[data_length] = '\0';
+    }
+
+    return data;
+}
+
+char* ltrim(char* str) {
+    if (!str || !*str) {
+        return str;
+    }
+    while (*str != '\0' && isspace(*str)) {
+        str++;
+    }
+    return str;
+}
+
+char* rtrim(char* str) {
+    if (!str || !*str) {
+        return str;
+    }
+    char* end = str + strlen(str) - 1;
+    while (end >= str && isspace(*end)) {
+        end--;
+    }
+    *(end + 1) = '\0';
+    return str;
+}
+
+int parse_int(char* str) {
+    char* endptr;
+    int value = strtol(str, &endptr, 10);
+    if (endptr == str || *endptr != '\0') {
+        exit(EXIT_FAILURE);
+    }
+    return value;
+}
+__________________________________________________________________________________________________________________________________________________________________
+15.
+#include <assert.h>
+#include <ctype.h>
+#include <limits.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+char* readline();
+char* ltrim(char*);
+char* rtrim(char*);
+int parse_int(char*);
+
+/*
+ * Complete the 'getMax' function below.
+ *
+ * The function is expected to return an INTEGER_ARRAY.
+ * The function accepts STRING_ARRAY operations as parameter.
+ */
+int* getMax(int operations_count, char** operations, int* result_count) {
+    // Array to store the answers for type 3 queries
+    int* result = (int*)malloc(operations_count * sizeof(int));
+    int res_idx = 0;
+
+    // Allocate memory for the tracking stack
+    int* max_stack = (int*)malloc(operations_count * sizeof(int));
+    int top = -1;
+
+    for (int i = 0; i < operations_count; i++) {
+        char* op = operations[i];
+        
+        // Check query type
+        if (op[0] == '1') {
+            // Type 1: Parse the integer following the space
+            int x = atoi(op + 2);
+            
+            // If stack is empty, current element is the max.
+            // Otherwise, compare x with the current maximum on top of the stack.
+            if (top == -1) {
+                max_stack[++top] = x;
+            } else {
+                int current_max = max_stack[top];
+                max_stack[++top] = (x > current_max) ? x : current_max;
+            }
+        } 
+        else if (op[0] == '2') {
+            // Type 2: Pop the top element
+            if (top >= 0) {
+                top--;
+            }
+        } 
+        else if (op[0] == '3') {
+            // Type 3: Record the maximum element from the top of our tracking stack
+            if (top >= 0) {
+                result[res_idx++] = max_stack[top];
+            }
+        }
+    }
+
+    // Free temporary memory allocation
+    free(max_stack);
+
+    // Update the return count wrapper for HackerRank
+    *result_count = res_idx;
+    
+    // Shrink output result block to exact matching results size boundaries
+    result = (int*)realloc(result, res_idx * sizeof(int));
+    
+    return result;
+}
+
+int main()
+{
+    FILE* fptr = fopen(getenv("OUTPUT_PATH"), "w");
+    if (!fptr) {
+        fptr = stdout;
+    }
+
+    int n = parse_int(ltrim(rtrim(readline())));
+
+    char** ops = malloc(n * sizeof(char*));
+
+    for (int i = 0; i < n; i++) {
+        char* ops_item = readline();
+        *(ops + i) = ops_item;
+    }
+
+    int res_count;
+    int* res = getMax(n, ops, &res_count);
+
+    for (int i = 0; i < res_count; i++) {
+        fprintf(fptr, "%d", *(res + i));
+
+        if (i != res_count - 1) {
+            fprintf(fptr, "\n");
+        }
+    }
+
+    fprintf(fptr, "\n");
+    fclose(fptr);
+
+    // Free dynamically allocated elements
+    for (int i = 0; i < n; i++) {
+        free(ops[i]);
+    }
+    free(ops);
+    free(res);
+
+    return 0;
+}
+
+char* readline() {
+    size_t alloc_length = 1024;
+    size_t data_length = 0;
+    char* data = malloc(alloc_length);
+
+    while (true) {
+        char* cursor = data + data_length;
+        char* line = fgets(cursor, alloc_length - data_length, stdin);
+
+        if (!line) {
+            break;
+        }
+
+        data_length += strlen(cursor);
+        if (data_length < alloc_length - 1 || data[data_length - 1] == '\n') {
+            break;
+        }
+
+        alloc_length <<= 1;
+        data = realloc(data, alloc_length);
+        if (!data) {
+            return NULL;
+        }
+    }
+
+    if (data_length == 0) {
+        free(data);
+        return NULL;
+    }
+
+    if (data[data_length - 1] == '\n') {
+        data[data_length - 1] = '\0';
+    } else {
+        data = realloc(data, data_length + 1);
+        data[data_length] = '\0';
+    }
+
+    return data;
+}
+
+char* ltrim(char* str) {
+    if (!str || !*str) {
+        return str;
+    }
+    while (*str != '\0' && isspace(*str)) {
+        str++;
+    }
+    return str;
+}
+
+char* rtrim(char* str) {
+    if (!str || !*str) {
+        return str;
+    }
+    char* end = str + strlen(str) - 1;
+    while (end >= str && isspace(*end)) {
+        end--;
+    }
+    *(end + 1) = '\0';
+    return str;
+}
+
+int parse_int(char* str) {
+    char* endptr;
+    int value = strtol(str, &endptr, 10);
+    if (endptr == str || *endptr != '\0') {
+        exit(EXIT_FAILURE);
+    }
+    return value;
+}
+__________________________________________________________________________________________________________________________________________________________________________
+
+

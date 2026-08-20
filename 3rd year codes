@@ -245,8 +245,12 @@ struct ListNode* mergeTwoLists(struct ListNode* list1, struct ListNode* list2) {
     // Return the head of the merged list
     return dummy.next;
 }
-_________________________________________________________________________________________________________________________________________________________
-18/08/26           HACKER RANK PROBLEMS GIVEN BY MAM
+_________________________________________________________________________________________________________________________________________
+
+
+
+
+18/08/26                                        HACKER RANK PROBLEMS GIVEN BY MAM
 
 1. 
 #include <stdio.h>
@@ -2634,5 +2638,112 @@ int parse_int(char* str) {
     return value;
 }
 __________________________________________________________________________________________________________________________________________________________________________
+
+
+20.08.26                                                 BINARY SEARCH PROGRAM:
+1. EASY PROOBLEMS:
+
+int search(int* nums, int numsSize, int target) {
+    int left = 0;
+    int right = numsSize - 1;
+
+    while (left <= right) {
+        
+        int mid = left + (right - left) / 2;
+
+        if (nums[mid] == target) {
+            return mid; 
+        } else if (nums[mid] < target) {
+            left = mid + 1; 
+        } else {
+            right = mid - 1; 
+        }
+    }
+
+    return -1; 
+}
+_____________________________________________________________________________________________________________________________________
+2. PROGRAM NO 67 IN LEETCODE:
+#include <stdlib.h>
+#include <string.h>
+
+char* addBinary(char* a, char* b) {
+    int len_a = strlen(a);
+    int len_b = strlen(b);
+    
+    // The maximum length of the result string is max(len_a, len_b) + 1 (for a potential carryover)
+    int max_len = (len_a > len_b ? len_a : len_b) + 1;
+    
+    // Allocate memory for the result string + 1 for the null-terminator '\0'
+    char* result = (char*)malloc((max_len + 1) * sizeof(char));
+    result[max_len] = '\0'; // Set the null terminator at the very end
+    
+    int i = len_a - 1; // Pointer for string a
+    int j = len_b - 1; // Pointer for string b
+    int k = max_len - 1; // Pointer for filling the result string from right to left
+    int carry = 0;
+    
+    // Loop until both strings are fully processed and there is no leftover carry
+    while (i >= 0 || j >= 0 || carry > 0) {
+        int sum = carry;
+        
+        if (i >= 0) {
+            sum += a[i] - '0'; // Convert character '0' or '1' to integer 0 or 1
+            i--;
+        }
+        if (j >= 0) {
+            sum += b[j] - '0';
+            j--;
+        }
+        
+        result[k] = (sum % 2) + '0'; // Binary digit at this position (0 or 1)
+        carry = sum / 2;             // Carry for the next position (0 or 1)
+        k--;
+    }
+    
+    // If the loop finished early and didn't use the very first index (index 0),
+    // it means there was no final carry that expanded the string size.
+    // Shift the pointer forward to skip the unused space.
+    return &result[k + 1];
+}
+___________________________________________________________________________________________________________________________________________
+3. PROGRAM NO: 33
+int search(int* nums, int numsSize, int target) {
+    int left = 0;
+    int right = numsSize - 1;
+
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+
+        // Condition 1: Target found
+        if (nums[mid] == target) {
+            return mid;
+        }
+
+        // Condition 2: Check if the left half is sorted
+        if (nums[left] <= nums[mid]) {
+            // Check if the target lies within the sorted left half
+            if (target >= nums[left] && target < nums[mid]) {
+                right = mid - 1; // Search left
+            } else {
+                left = mid + 1;  // Search right
+            }
+        } 
+        // Condition 3: The right half must be sorted
+        else {
+            // Check if the target lies within the sorted right half
+            if (target > nums[mid] && target <= nums[right]) {
+                left = mid + 1;  // Search right
+            } else {
+                right = mid - 1; // Search left
+            }
+        }
+    }
+
+    return -1; // Target not found
+}
+______________________________________________________________________________________________________________________________________
+
+
 
 

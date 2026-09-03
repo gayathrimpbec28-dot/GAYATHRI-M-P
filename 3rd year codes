@@ -2957,6 +2957,44 @@ int* preorderTraversal(struct TreeNode* root, int* returnSize) {
     return result;
 }
 ______________________________________________________________________________________________________________________________________
+BINARY TREE POST ORDER TRAVERSAL:
+#include <stdlib.h>
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     struct TreeNode *left;
+ *     struct TreeNode *right;
+ * };
+ */
+
+// Helper function to recursively perform postorder traversal
+void traverse(struct TreeNode* root, int* arr, int* size) {
+    if (root == NULL) {
+        return;
+    }
+    
+    // Process left subtree (Left -> Right -> Root)
+    traverse(root->left, arr, size);
+    
+    // Process right subtree
+    traverse(root->right, arr, size);
+    
+    // Process root node last
+    arr[(*size)++] = root->val;
+}
+
+int* postorderTraversal(struct TreeNode* root, int* returnSize) {
+    // Allocate maximum potential nodes buffer based on typical constraints
+    int* result = (int*)malloc(100 * sizeof(int));
+    *returnSize = 0;
+    
+    traverse(root, result, returnSize);
+    
+    return result;
+}
+__________________________________________________________________________________________________________________________________________
 
 
 

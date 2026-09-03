@@ -2743,7 +2743,220 @@ int search(int* nums, int numsSize, int target) {
     return -1; // Target not found
 }
 ______________________________________________________________________________________________________________________________________
+                                   03.09.2026             LEET CODE PROGRAM
 
+BINARY SEARCH TREE:
+
+int search(int* nums, int numsSize, int target) {
+    int left = 0;
+    int right = numsSize - 1;
+
+    while (left <= right) {
+        // Prevents potential integer overflow compared to (left + right) / 2
+        int mid = left + (right - left) / 2;
+
+        if (nums[mid] == target) {
+            return mid; // Target found, return its index
+        } else if (nums[mid] < target) {
+            left = mid + 1; // Target is in the right half
+        } else {
+            right = mid - 1; // Target is in the left half
+        }
+    }
+
+    return -1; // Target does not exist in the array
+}
+_____________________________________________________________________________________________________________________________________
+
+INVERT BINARY TREE:
+#include <stdlib.h>
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     struct TreeNode *left;
+ *     struct TreeNode *right;
+ * };
+ */
+struct TreeNode* invertTree(struct TreeNode* root) {
+    // Base Case: if the tree is empty, return NULL
+    if (root == NULL) {
+        return NULL;
+    }
+    
+    // Step 1: Recursively invert the subtrees
+    struct TreeNode* leftInverted = invertTree(root->left);
+    struct TreeNode* rightInverted = invertTree(root->right);
+    
+    // Step 2: Swap the left and right pointers of the current node
+    root->left = rightInverted;
+    root->right = leftInverted;
+    
+    // Return the root of the inverted tree
+    return root;
+}
+______________________________________________________________________________________________________________________________________
+
+BINARY TREE PATH:
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     struct TreeNode *left;
+ *     struct TreeNode *right;
+ * };
+ */
+
+// DFS helper function to traverse the tree and construct paths
+void dfs(struct TreeNode* node, char* currentPath, char** result, int* returnSize) {
+    if (node == NULL) {
+        return;
+    }
+    
+    // Create a local buffer to hold the updated path for the current node
+    // Node value is between -100 and 100, plus "->" needs up to 6 extra chars per node
+    char newPath[2000]; 
+    
+    if (strlen(currentPath) == 0) {
+        // Root node path initialization
+        sprintf(newPath, "%d", node->val);
+    } else {
+        // Appending child nodes to the path
+        sprintf(newPath, "%s->%d", currentPath, node->val);
+    }
+    
+    // If it's a leaf node, save the current constructed path to the result array
+    if (node->left == NULL && node->right == NULL) {
+        result[*returnSize] = malloc(strlen(newPath) + 1);
+        strcpy(result[*returnSize], newPath);
+        (*returnSize)++;
+        return;
+    }
+    
+    // Continue exploration down left and right subtrees
+    dfs(node->left, newPath, result, returnSize);
+    dfs(node->right, newPath, result, returnSize);
+}
+
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+char** binaryTreePaths(struct TreeNode* root, int* returnSize) {
+    *returnSize = 0;
+    if (root == NULL) {
+        return NULL;
+    }
+    
+    // Constraints show max 100 nodes, so a maximum of 50 leaf nodes (paths) are possible
+    char** result = (char**)malloc(100 * sizeof(char*));
+    char initialPath[1] = "";
+    
+    dfs(root, initialPath, result, returnSize);
+    
+    return result;
+}
+_________________________________________________________________________________________________________________________________________
+BINARY   TREE  INORDER  TRAVERSAL:
+
+#include <stdlib.h>
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     struct TreeNode *left;
+ *     struct TreeNode *right;
+ * };
+ */
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+int* inorderTraversal(struct TreeNode* root, int* returnSize) {
+    int capacity = 100;
+    int* result = (int*)malloc(capacity * sizeof(int));
+    int size = 0;
+
+    struct TreeNode* curr = root;
+    while (curr != NULL) {
+        if (curr->left == NULL) {
+            // No left child: process current node and go right
+            if (size >= capacity) {
+                capacity *= 2;
+                result = (int*)realloc(result, capacity * sizeof(int));
+            }
+            result[size++] = curr->val;
+            curr = curr->right;
+        } else {
+            // Find the inorder predecessor of curr
+            struct TreeNode* pred = curr->left;
+            while (pred->right != NULL && pred->right != curr) {
+                pred = pred->right;
+            }
+
+            if (pred->right == NULL) {
+                // Create a temporary link to the successor
+                pred->right = curr;
+                curr = curr->left;
+            } else {
+                // Link already exists: break the link, process node, and go right
+                pred->right = NULL;
+                if (size >= capacity) {
+                    capacity *= 2;
+                    result = (int*)realloc(result, capacity * sizeof(int));
+                }
+                result[size++] = curr->val;
+                curr = curr->right;
+            }
+        }
+    }
+
+    *returnSize = size;
+    return result;
+}
+________________________________________________________________________________________________________________________________________
+BINARY TREE PREORDER TRAVERSAL:
+#include <stdlib.h>
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     struct TreeNode *left;
+ *     struct TreeNode *right;
+ * };
+ */
+
+// Helper function to recursively perform preorder traversal
+void traverse(struct TreeNode* root, int* arr, int* size) {
+    if (root == NULL) {
+        return;
+    }
+    
+    // Process root node first (Root -> Left -> Right)
+    arr[(*size)++] = root->val;
+    
+    // Traverse left subtree
+    traverse(root->left, arr, size);
+    
+    // Traverse right subtree
+    traverse(root->right, arr, size);
+}
+
+int* preorderTraversal(struct TreeNode* root, int* returnSize) {
+    // Allocate maximum potential nodes buffer (e.g., 100 nodes for LeetCode constraints)
+    int* result = (int*)malloc(100 * sizeof(int));
+    *returnSize = 0;
+    
+    traverse(root, result, returnSize);
+    
+    return result;
+}
+______________________________________________________________________________________________________________________________________
 
 
 

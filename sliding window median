@@ -1,0 +1,175 @@
+#include <stdlib.h>
+#include <stdbool.h>
+
+typedef struct {
+    int id;       
+    long long val; 
+} HeapNode;
+
+typedef struct {
+    HeapNode* data;
+    int* pos;     // Unique tracking: positive indices for maxHeap, negative indices for minHeap
+    int size;
+    int capacity;
+    bool isMinHeap;
+} Heap;
+
+Heap* createHeap(int capacity, int* posArray, bool isMinHeap) {
+    Heap* h = (Heap*)malloc(sizeof(Heap));
+    h->data = (HeapNode*)malloc((capacity + 1) * sizeof(HeapNode));
+    h->pos = posArray;
+    h->size = 0;
+    h->capacity = capacity;
+    h->isMinHeap = isMinHeap;
+    return h;
+}
+
+bool compareNodes(Heap* h, int i, int j) {
+    if (h->isMinHeap) {
+        return h->data[i].val < h->data[j].val;
+    } else {
+        return h->data[i].val > h->data[j].val;
+    }
+}
+
+void swapNodes(Heap* h, int i, int j) {
+    HeapNode temp = h->data[i];
+    h->data[i] = h->data[j];
+    h->data[j] = temp;
+    // Update tracking position with sign to differentiate between maxHeap and minHeap
+    h->pos[h->data[i].id] = h->isMinHeap ? -i : i;
+    h->pos[h->data[j].id] = h->isMinHeap ? -j : j;
+}
+
+void siftUp(Heap* h, int idx) {
+    while (idx > 1 && compareNodes(h, idx, idx / 2)) {
+        swapNodes(h, idx, idx / 2);
+        idx = idx / 2;
+    }
+}
+
+void siftDown(Heap* h, int idx) {
+    int target = idx;
+    while (true) {
+        int left = 2 * idx;
+        int right = 2 * idx + 1;
+        if (left <= h->size && compareNodes(h, left, target)) target = left;
+        if (right <= h->size && compareNodes(h, right, target)) target = right;
+        if (target != idx) {
+            swapNodes(h, idx, target);
+            idx = target;
+        } else {
+            break;
+        }
+    }
+}
+
+void push(Heap* h, int id, long long val) {
+    h->size++;
+    h->data[h->size].id = id;
+    h->data[h->size].val = val;
+    h->pos[id] = h->isMinHeap ? -h->size : h->size;
+    siftUp(h, h->size);
+}
+
+void removeNode(Heap* h, int idx) {
+    if (idx < 1 || idx > h->size) return;
+    int id = h->data[idx].id;
+    swapNodes(h, idx, h->size);
+    h->size--;
+    h->pos[id] = 0; 
+    if (idx <= h->size) {
+        siftUp(h, idx);
+        siftDown(h, idx);
+    }
+}
+
+HeapNode peek(Heap* h) {
+    return h->data[1];
+}
+
+// Highly optimized balancing using basic conditional branching instead of heavy while loops
+void balanceHeaps(Heap* maxHeap, Heap* minHeap, int targetMaxLen) {
+    if (maxHeap->size > targetMaxLen) {
+        HeapNode top = peek(maxHeap);
+        removeNode(maxHeap, 1);
+        push(minHeap, top.id, top.val);
+    } else if (maxHeap->size < targetMaxLen) {
+        HeapNode top = peek(minHeap);
+        removeNode(minHeap, 1);
+        push(maxHeap, top.id, top.val);
+    }
+}
+
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+double* medianSlidingWindow(int* nums, int numsSize, int k, int* returnSize) {
+    int resSize = numsSize - k + 1;
+    double* result = (double*)malloc(resSize * sizeof(double));
+    *returnSize = resSize;
+
+    // Allocate tracking array
+    int* posArray = (int*)calloc(numsSize, sizeof(int));
+    
+    Heap* maxHeap = createHeap(k + 2, posArray, false); 
+    Heap* minHeap = createHeap(k + 2, posArray, true);  
+
+    int targetMaxLen = (k + 1) / 2;
+
+    // Process the first window
+    for (int i = 0; i < k; i++) {
+        if (maxHeap->size == 0 || nums[i] <= peek(maxHeap).val) {
+            push(maxHeap, i, nums[i]);
+        } else {
+            push(minHeap, i, nums[i]);
+        }
+        balanceHeaps(maxHeap, minHeap, (maxHeap->size + minHeap->size + 1) / 2);
+    }
+
+    // Record the first median
+    if (k % 2 == 1) {
+        result[0] = (double)peek(maxHeap).val;
+    } else {
+        result[0] = ((double)peek(maxHeap).val + (double)peek(minHeap).val) / 2.0;
+    }
+
+    // Slide across the remaining elements
+    for (int i = k; i < numsSize; i++) {
+        int out_id = i - k;
+
+        // 1. O(1) determination and execution of removal 
+        int p = posArray[out_id];
+        if (p > 0) {
+            removeNode(maxHeap, p);
+        } else if (p < 0) {
+            removeNode(minHeap, -p);
+        }
+
+        // 2. Direct conditional routing for insertion
+        if (maxHeap->size > 0 && nums[i] <= peek(maxHeap).val) {
+            push(maxHeap, i, nums[i]);
+        } else {
+            push(minHeap, i, nums[i]);
+        }
+
+        // 3. Fast O(log k) single-step balancing
+        balanceHeaps(maxHeap, minHeap, targetMaxLen);
+
+        // 4. Calculate current window median
+        if (k % 2 == 1) {
+            result[i - k + 1] = (double)peek(maxHeap).val;
+        } else {
+            result[i - k + 1] = ((double)peek(maxHeap).val + (double)peek(minHeap).val) / 2.0;
+        }
+    }
+
+    // Free structures
+    free(maxHeap->data);
+    free(minHeap->data);
+    free(maxHeap);
+    free(minHeap);
+    free(posArray);
+
+    return result;
+}

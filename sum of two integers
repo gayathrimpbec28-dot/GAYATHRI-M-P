@@ -1,0 +1,14 @@
+int getSum(int a, int b) {
+    while (b != 0) {
+        // Find the carry bits (only 1 AND 1 produces a carry)
+        int carry = a & b;
+        
+        // Sum the bits without carrying (XOR adds bits)
+        a = a ^ b;
+        
+        // Shift carry to the left to add it to the next higher bit
+        // Cast to unsigned int to avoid undefined behavior with negative numbers in C
+        b = (unsigned int)carry << 1;
+    }
+    return a;
+}

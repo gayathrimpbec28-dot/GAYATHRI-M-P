@@ -1,0 +1,54 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
+int minSumOfLengths(int* arr, int arrSize, int target) {
+    // min_len[i] will store the minimum length of a valid subarray found in arr[0...i]
+    int* min_len = (int*)malloc(arrSize * sizeof(int));
+    for (int i = 0; i < arrSize; i++) {
+        min_len[i] = 1e9; // Initialize with a large value representing infinity
+    }
+    
+    int left = 0;
+    int current_sum = 0;
+    int min_total_length = 1e9;
+    
+    for (int right = 0; right < arrSize; right++) {
+        current_sum += arr[right];
+        
+        // Shrink the window from the left if the sum exceeds target
+        while (current_sum > target && left <= right) {
+            current_sum -= arr[left];
+            left++;
+        }
+        
+        // Found a valid subarray matching the target sum
+        if (current_sum == target) {
+            int current_len = right - left + 1;
+            
+            // Check if there is a valid non-overlapping subarray to the left of our window
+            if (left > 0 && min_len[left - 1] != 1e9) {
+                min_total_length = MIN(min_total_length, current_len + min_len[left - 1]);
+            }
+            
+            // Update min_len for the current index
+            if (right > 0) {
+                min_len[right] = MIN(min_len[right - 1], current_len);
+            } else {
+                min_len[right] = current_len;
+            }
+        } else {
+            // Keep propagating the minimum length found so far
+            if (right > 0) {
+                min_len[right] = min_len[right - 1];
+            }
+        }
+    }
+    
+    free(min_len);
+    
+    // If min_total_length wasn't updated, it means no two non-overlapping subarrays exist
+    return (min_total_length >= 1e9) ? -1 : min_total_length;
+}

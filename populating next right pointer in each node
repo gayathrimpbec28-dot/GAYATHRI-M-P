@@ -1,0 +1,44 @@
+#include <stdlib.h>
+
+/**
+ * Definition for a Node.
+ * struct Node {
+ *     int val;
+ *     struct Node *left;
+ *     struct Node *right;
+ *     struct Node *next;
+ * };
+ */
+
+struct Node* connect(struct Node* root) {
+    if (root == NULL) {
+        return NULL;
+    }
+    
+    // Start with the root node
+    struct Node* leftmost = root;
+    
+    // Loop through levels until we reach the leaf level
+    while (leftmost->left != NULL) {
+        struct Node* curr = leftmost;
+        
+        // Traverse the current level horizontally using next pointers
+        while (curr != NULL) {
+            // Connection 1: Connect left child to right child
+            curr->left->next = curr->right;
+            
+            // Connection 2: Connect right child to the next parent's left child
+            if (curr->next != NULL) {
+                curr->right->next = curr->next->left;
+            }
+            
+            // Move to the next node on the same level
+            curr = curr->next;
+        }
+        
+        // Move down to the first node of the next level
+        leftmost = leftmost->left;
+    }
+    
+    return root;
+}

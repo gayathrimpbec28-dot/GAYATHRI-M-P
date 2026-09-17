@@ -1,0 +1,40 @@
+#include <stdbool.h>
+#include <stdlib.h>
+#include <math.h>
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     struct TreeNode *left;
+ *     struct TreeNode *right;
+ * };
+ */
+
+// Helper function that checks balance status and returns height
+int checkHeight(struct TreeNode* root) {
+    if (root == NULL) {
+        return 0;
+    }
+    
+    // Check left subtree
+    int leftHeight = checkHeight(root->left);
+    if (leftHeight == -1) return -1; // Left subtree is already unbalanced
+    
+    // Check right subtree
+    int rightHeight = checkHeight(root->right);
+    if (rightHeight == -1) return -1; // Right subtree is already unbalanced
+    
+    // If current node is unbalanced, return -1
+    if (abs(leftHeight - rightHeight) > 1) {
+        return -1;
+    }
+    
+    // Otherwise, return the actual height of this node
+    return (leftHeight > rightHeight ? leftHeight : rightHeight) + 1;
+}
+
+bool isBalanced(struct TreeNode* root) {
+    // If checkHeight returns -1, the tree is not balanced
+    return checkHeight(root) != -1;
+}

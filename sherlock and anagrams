@@ -1,0 +1,180 @@
+#include <assert.h>
+#include <ctype.h>
+#include <limits.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+char* readline();
+char* ltrim(char*);
+char* rtrim(char*);
+int parse_int(char*);
+
+// Comparison function to sort characters inside a substring
+int compareChars(const void* a, const void* b) {
+    return (*(const char*)a - *(const char*)b);
+}
+
+// Comparison function to sort substring signatures alphabetically
+int compareStrings(const void* a, const void* b) {
+    return strcmp(*(const char**)a, *(const char**)b);
+}
+
+/*
+ * Complete the 'sherlockAndAnagrams' function below.
+ *
+ * The function is expected to return an INTEGER.
+ * The function accepts STRING s as parameter.
+ */
+int sherlockAndAnagrams(char* s) {
+    int len = strlen(s);
+    // Total number of possible non-empty substrings is len * (len + 1) / 2
+    int max_substrings = (len * (len + 1)) / 2;
+    
+    // Allocate space to store the signatures of all substrings
+    char** substrings = (char**)malloc(max_substrings * sizeof(char*));
+    int count = 0;
+    
+    // Step 1 & 2: Extract all substrings and sort their individual characters
+    for (int i = 0; i < len; i++) {
+        for (int sub_len = 1; i + sub_len <= len; sub_len++) {
+            substrings[count] = (char*)malloc((sub_len + 1) * sizeof(char));
+            
+            // Copy substring slice into our placeholder
+            strncpy(substrings[count], &s[i], sub_len);
+            substrings[count][sub_len] = '\0';
+            
+            // Sort characters to get the anagram signature
+            qsort(substrings[count], sub_len, sizeof(char), compareChars);
+            count++;
+        }
+    }
+    
+    // Step 3: Sort all signature strings so that identical signatures sit next to each other
+    qsort(substrings, count, sizeof(char*), compareStrings);
+    
+    int total_pairs = 0;
+    int current_frequency = 1;
+    
+    // Count frequencies of identical signatures to calculate combinations
+    for (int i = 1; i < count; i++) {
+        if (strcmp(substrings[i], substrings[i - 1]) == 0) {
+            current_frequency++;
+        } else {
+            total_pairs += (current_frequency * (current_frequency - 1)) / 2;
+            current_frequency = 1;
+        }
+    }
+    // Don't forget the last tracked group combo calculation
+    total_pairs += (current_frequency * (current_frequency - 1)) / 2;
+    
+    // Clean up allocated signature arrays to prevent memory leaks
+    for (int i = 0; i < count; i++) {
+        free(substrings[i]);
+    }
+    free(substrings);
+    
+    return total_pairs;
+}
+
+int main()
+{
+    char* output_path = getenv("OUTPUT_PATH");
+    FILE* fptr = output_path ? fopen(output_path, "w") : stdout;
+
+    int q = parse_int(ltrim(rtrim(readline())));
+
+    for (int q_itr = 0; q_itr < q; q_itr++) {
+        char* s = readline();
+
+        int result = sherlockAndAnagrams(s);
+
+        fprintf(fptr, "%d\n", result);
+        
+        free(s);
+    }
+
+    if (output_path) {
+        fclose(fptr);
+    }
+
+    return 0;
+}
+
+char* readline() {
+    size_t alloc_length = 1024;
+    size_t data_length = 0;
+    char* data = malloc(alloc_length);
+
+    while (true) {
+        char* cursor = data + data_length;
+        char* line = fgets(cursor, alloc_length - data_length, stdin);
+
+        if (!line) {
+            break;
+        }
+
+        data_length += strlen(cursor);
+
+        if (data_length < alloc_length - 1 || data[data_length - 1] == '\n') {
+            break;
+        }
+
+        alloc_length <<= 1;
+        data = realloc(data, alloc_length);
+
+        if (!data) {
+            data = '\0';
+            break;
+        }
+    }
+
+    if (data_length == 0) return NULL;
+
+    if (data[data_length - 1] == '\n') {
+        data[data_length - 1] = '\0';
+        data = realloc(data, data_length);
+    } else {
+        data = realloc(data, data_length + 1);
+        if (data) {
+            data[data_length] = '\0';
+        }
+    }
+
+    return data;
+}
+
+char* ltrim(char* str) {
+    if (!str || !*str) {
+        return str;
+    }
+    while (*str != '\0' && isspace(*str)) {
+        str++;
+    }
+    return str;
+}
+
+char* rtrim(char* str) {
+    if (!str || !*str) {
+        return str;
+    }
+    char* end = str + strlen(str) - 1;
+    while (end >= str && isspace(*end)) {
+        end--;
+    }
+    *(end + 1) = '\0';
+    return str;
+}
+
+int parse_int(char* str) {
+    char* endptr;
+    int value = strtol(str, &endptr, 10);
+    if (endptr == str || *endptr != '\0') {
+        exit(EXIT_FAILURE);
+    }
+    return value;
+}
